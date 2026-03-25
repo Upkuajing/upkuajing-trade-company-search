@@ -44,7 +44,9 @@ def main():
     # 从响应中提取数据
     if response.get('code') == 0:
         data = response.get('data', {})
-        print_json_output(data)
+        # 提取费用信息 金额单位 分钱
+        api_cost = response.get('fee', {}).get("apiCost", 0)
+        print_json_output({"data": data, "apiCost": f"{api_cost}分钱"})
     else:
         print(f"错误：{response.get('msg', '未知错误')}", file=sys.stderr)
         sys.exit(1)

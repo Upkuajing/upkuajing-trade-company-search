@@ -1,8 +1,7 @@
 ---
 name: upkuajing-trade-company-search
 description: 通过跨境魔方开放平台查询海关贸易数据。支持：查询贸易订单明细（进口/出口记录、交易金额、贸易路线）；发现潜在客户和商业合作伙伴（买家开发、供应商调查、客户挖掘）；获取公司详情和联系方式（邮箱、电话、社交媒体）。适用场景：外贸客户开发、竞品供应链分析、物流行业客户挖掘、进出口市场调研。
-homepage: https://www.upkuajing.com
-metadata: {"clawdbot":{"emoji":"🏢","requires":{"bins":["python"],"env":["UPKUAJING_API_KEY"]},"primaryEnv":"UPKUAJING_API_KEY"}}
+metadata: {"version":"1.0.0","homepage":"https://www.upkuajing.com","clawdbot":{"emoji":"🏢","requires":{"bins":["python"],"env":["UPKUAJING_API_KEY"]},"primaryEnv":"UPKUAJING_API_KEY"}}
 ---
 
 # 跨境魔方海关贸易公司搜索
@@ -19,8 +18,7 @@ metadata: {"clawdbot":{"emoji":"🏢","requires":{"bins":["python"],"env":["UPKU
 ### 环境准备
 
 1. **检查 Python**：`python --version`
-2. **检查并创建虚拟环境**（如果需要）
-3. **安装依赖**：`pip install -r requirements.txt`
+2. **安装依赖**：`pip install -r requirements.txt`
 
 脚本目录：`scripts/*.py`
 运行示例：`python scripts/*.py`
@@ -59,11 +57,14 @@ metadata: {"clawdbot":{"emoji":"🏢","requires":{"bins":["python"],"env":["UPKU
 - **API业务参数**：[获取联系方式](references/contact-fetch-api.md)
 
 ## API密钥与充值
-使用此技能需要API密钥。API密钥应设置在 `UPKUAJING_API_KEY` 环境变量中：
+使用此技能需要API密钥。API密钥应设置在 `UPKUAJING_API_KEY` 环境变量中;
 ```bash
+echo $UPKUAJING_API_KEY
+cat ./.env
 export UPKUAJING_API_KEY=your_api_key_here
 ```
 ### **未设置API密钥**
+请先检查`./.env`文件是否有UPKUAJING_API_KEY;
 如果未设置UPKUAJING_API_KEY API密钥，请提示并让用户选择：
 1. 用户有，由用户提供(让用户设置到环境变量)
 2. 用户没有，你可使用接口进行申请（`auth.py --new_key`），申请到新密钥后，需告知用户妥善保存
@@ -91,6 +92,7 @@ export UPKUAJING_API_KEY=your_api_key_here
 
 ## 工作流程
 根据用户意图选择合适的API
+
 ### 决策指南
 
 | 用户意图 | 使用API |
@@ -140,8 +142,6 @@ python scripts/company_list_search.py --task_id 'a1b2-c3d4' --query_count 1000
 
 ## 错误处理
 
-脚本为常见问题提供详细的错误消息：
-
 - **API密钥无效/不存在**：检查`UPKUAJING_API_KEY`环境变量
 - **余额不足**：根据**账户充值**步骤，引导用户充值
 - **参数无效**：根据接口，查看references完整文档，检查参数名称和值
@@ -163,8 +163,7 @@ python scripts/company_list_search.py --task_id 'a1b2-c3d4' --query_count 1000
 
 ### 处理结果
 
-3. **谨慎处理jsonl文件**：
-   - 对数据量大的查询，思考文件的查看方式，防止上下文爆炸
+3. **谨慎处理jsonl文件**：对数据量大的查询，注意文件大小
 
 4. **逐步丰富信息**：仅在需要时调用详情/联系接口
    - 两个列表接口返回的公司ID都可以用于两个详情接口
@@ -177,4 +176,4 @@ python scripts/company_list_search.py --task_id 'a1b2-c3d4' --query_count 1000
 - 产品名称、行业名称需要使用**英文**
 - 搜索数量会影响接口的响应时间，建议设置 timeout:120
 - **禁止输出技术参数格式**：不要在回复中展示代码样式的参数，应将其转换为自然语言
-- **绝对不要**估算或猜测每次调用的费用金额、可用次数，各接口收费价格不一致，以[详细价格说明]为准
+- **不要**估算、猜测每次调用的费用，如有需要，使用`auth.py --account_info` 获取余额

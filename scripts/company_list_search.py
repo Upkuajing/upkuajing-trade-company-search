@@ -80,6 +80,9 @@ def main():
 
         params = meta['params']
         current_cursor = meta.get('cursor')
+        if not current_cursor:
+            print(f"错误：任务 {task_id} 已经没有更多数据，建议调整参数后发起新任务查询", file=sys.stderr)
+            sys.exit(1)
     else:
         # 创建新任务
         task_id = generate_task_id()
@@ -94,6 +97,8 @@ def main():
     # 游标查询循环
     total_retrieved = 0
     error_message = None
+    # 总费用 单位分钱
+    total_cost = 0
 
     while total_retrieved < args.query_count:
         try:
@@ -107,6 +112,8 @@ def main():
 
             # 提取数据
             data = response.get('data', {})
+            # 提取费用信息 金额单位 分钱
+            fee = response.get('fee', {})
             company_list = data.get('list') or []
             current_cursor = data.get('cursor')  # 获取新的游标
 
@@ -115,8 +122,13 @@ def main():
                 append_result_data(task_id, company_list)
                 total_retrieved += len(company_list)
 
+            if fee:
+                total_cost += fee.get("apiCost", 0)
+            
             # 更新任务元数据
-            status = 'completed' if total_retrieved >= args.query_count else 'in_progress'
+            # 是否完成 没有更多数据、没有游标、获取足够数据
+            is_completed = (total_retrieved >= args.query_count) or len(company_list) == 0 or (not current_cursor)
+            status = 'completed' if is_completed else 'in_progress'
             meta = {
                 'task_id': task_id,
                 'params': params,
@@ -128,12 +140,7 @@ def main():
             save_task_meta(task_id, meta)
 
             # 检查是否完成
-            if len(company_list) == 0:
-                # 没有更多数据了
-                break
-
-            if total_retrieved >= args.query_count:
-                # 已获取足够数据
+            if is_completed:
                 break
 
         except SystemExit:
@@ -150,7 +157,8 @@ def main():
         'status': 'fail' if error_message else 'success',
         'total_hits': total_retrieved,
         'error_msg': error_message,
-        'file_url': get_task_result_file(task_id)
+        'file_url': get_task_result_file(task_id),
+        'total_cost': f"{total_cost}分钱"
     }
 
     # 输出结果
