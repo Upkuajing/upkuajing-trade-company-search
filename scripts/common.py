@@ -5,15 +5,26 @@ import os
 import json
 import sys
 import uuid
+import time
 from pathlib import Path
 from typing import Any, Dict, Optional
+from datetime import datetime
 import httpx
+
 
 # API配置
 API_BASE_URL = "https://openapi.upkuajing.com"
 API_KEY_ENV = "UPKUAJING_API_KEY"
 UPKUAJING_DIR = Path.home() / '.upkuajing'
 UPKUAJING_ENV_FILE = UPKUAJING_DIR / '.env'
+UPKUAJING_LOGS_DIR = UPKUAJING_DIR / 'logs'
+
+# 日志开关
+ENABLE_API_LOGGING = False  # 设置为 False 可关闭API日志记录
+
+# 请求配置
+API_TIMEOUT = 120.0  # API 请求超时时间（秒），列表查询可能较慢
+API_CONNECT_TIMEOUT = 10.0  # 连接超时时间（秒）
 
 # 技能目录配置
 SKILL_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -38,6 +49,7 @@ API_ERROR_MESSAGES = {
     APIErrorCode.REQUEST_AUTH_ERROR: "认证错误，请检查API密钥是否有效",
     APIErrorCode.SEARCH_BALANCE_NOT_ENOUGH: "余额不足，请充值后继续使用",
 }
+
 
 # API错误处理建议
 API_ERROR_SUGGESTIONS = {
@@ -92,11 +104,89 @@ def get_api_key() -> str:
     return api_key
 
 
+def log_request(endpoint: str, request_data: dict) -> None:
+    """
+    记录API请求入参到日志文件。
+
+    Args:
+        endpoint: API端点路径
+        request_data: 请求数据字典
+    """
+    # 检查日志开关
+    if not ENABLE_API_LOGGING:
+        return
+
+    try:
+        # 确保日志目录存在
+        UPKUAJING_LOGS_DIR.mkdir(parents=True, exist_ok=True)
+
+        # 生成日志文件名（年-月-日.log）
+        log_filename = datetime.now().strftime('%Y-%m-%d') + '.log'
+        log_file = UPKUAJING_LOGS_DIR / log_filename
+
+        # 构建日志内容
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        log_entry = {
+            'timestamp': timestamp,
+            'type': 'request',
+            'endpoint': endpoint,
+            'data': request_data
+        }
+
+        # 写入日志文件（追加模式）
+        with open(log_file, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(log_entry, ensure_ascii=False) + '\n')
+
+    except Exception as e:
+        # 日志记录失败不应该影响主流程，静默处理
+        pass
+
+
+def log_response(endpoint: str, response_data: dict, duration: float) -> None:
+    """
+    记录API响应出参到日志文件。
+
+    Args:
+        endpoint: API端点路径
+        response_data: 响应数据字典
+        duration: 请求耗时（秒）
+    """
+    # 检查日志开关
+    if not ENABLE_API_LOGGING:
+        return
+
+    try:
+        # 确保日志目录存在
+        UPKUAJING_LOGS_DIR.mkdir(parents=True, exist_ok=True)
+
+        # 生成日志文件名（年-月-日.log）
+        log_filename = datetime.now().strftime('%Y-%m-%d') + '.log'
+        log_file = UPKUAJING_LOGS_DIR / log_filename
+
+        # 构建日志内容
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        log_entry = {
+            'timestamp': timestamp,
+            'type': 'response',
+            'endpoint': endpoint,
+            'duration_seconds': round(duration, 3),
+            'data': response_data
+        }
+
+        # 写入日志文件（追加模式）
+        with open(log_file, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(log_entry, ensure_ascii=False) + '\n')
+
+    except Exception as e:
+        # 日志记录失败不应该影响主流程，静默处理
+        pass
+
+
 def make_request(
-        endpoint: str,
-        params: Dict[str, Any],
-        api_key: Optional[str] = None,
-        require_auth: bool = True
+    endpoint: str,
+    params: Dict[str, Any],
+    api_key: Optional[str] = None,
+    require_auth: bool = True
 ) -> Dict[str, Any]:
     """
     向跨境魔方API发起HTTP请求。
@@ -120,10 +210,31 @@ def make_request(
         headers["Authorization"] = f"Bearer {api_key}"
 
     try:
-        with httpx.Client(timeout=60.0) as client:
+        # 分别设置连接超时和读取超时
+        timeout_config = httpx.Timeout(API_TIMEOUT, connect=API_CONNECT_TIMEOUT)
+        with httpx.Client(timeout=timeout_config) as client:
+            # 记录请求开始时间
+            start_time = time.time()
+
+            # 记录入参日志（请求前）
+            log_request(endpoint, {'params': params})
+
             response = client.post(url, json=params, headers=headers)
+
+            # 计算请求耗时
+            duration = time.time() - start_time
+
+            # 先解析 JSON，以便记录日志
+            try:
+                data = response.json()
+            except json.JSONDecodeError:
+                data = {}
+
+            # 记录出参日志（请求后）
+            log_response(endpoint, {'response': data, 'status_code': response.status_code}, duration)
+
+            # 再检查 HTTP 状态
             response.raise_for_status()
-            data = response.json()
 
             # 检查API级别的错误  0表示成功，非0代表错误
             if data.get("code") != 0:
@@ -368,7 +479,6 @@ def append_result_data(task_id: str, data_list: list) -> None:
         for item in data_list:
             f.write(json.dumps(item, ensure_ascii=False) + '\n')
 
-
 def cover_fee_info(fee: dict) -> dict:
     """
     将Api响应的费用信息 转为利于Ai理解的格式
@@ -381,3 +491,4 @@ def cover_fee_info(fee: dict) -> dict:
         "apiCost": f"{api_cost}分钱",
         "balance": f"{balance}分钱"
     }
+    

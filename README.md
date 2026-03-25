@@ -74,11 +74,19 @@ pip install -r requirements.txt
 export UPKUAJING_API_KEY=your_api_key_here
 ```
 
-**Method 2: Using .env File**
+**Method 2: Using Shared .env File (Recommended)**
 ```bash
-cp .env.example .env
-# Edit .env file and fill in your API key
+# Create configuration directory
+mkdir -p ~/.upkuajing
+
+# Create .env file and add API key
+echo "UPKUAJING_API_KEY=your_api_key_here" > ~/.upkuajing/.env
+
+# Set file permissions (read/write for current user only)
+chmod 600 ~/.upkuajing/.env
 ```
+
+*Note: With shared configuration, all upkuajing series skills can use the same API key.*
 
 ### 3. Apply for API Key
 
@@ -123,11 +131,11 @@ python scripts/company_list_search.py \
   --params '{"importCountries": ["US"]}' \
   --query_count 20
 
-# Get company details
-python scripts/company_get_details.py --pid [Company ID]
+# Get company details (supports multiple IDs, space-separated, max 20)
+python scripts/company_get_details.py --companyIds [Company ID1 Company ID2 ...]
 
-# Get contact information
-python scripts/company_get_contact.py --pid [Company ID]
+# Get contact information (supports multiple IDs, space-separated, max 20)
+python scripts/company_get_contact.py --companyIds [Company ID1 Company ID2 ...]
 ```
 
 ## Usage Examples

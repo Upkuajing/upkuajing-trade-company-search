@@ -94,6 +94,11 @@ def main():
     error_message = None
     # 总费用 单位分钱
     total_cost = 0
+    # 余额
+    account_balance = 0
+
+    # 显示查询目标
+    print(f"开始查询：目标获取 {args.query_count} 条数据...")
 
     while total_retrieved < args.query_count:
         try:
@@ -117,8 +122,13 @@ def main():
                 append_result_data(task_id, trade_list)
                 total_retrieved += len(trade_list)
 
+                # 显示进度
+                progress = (total_retrieved / args.query_count) * 100
+                print(f"进度：{total_retrieved}/{args.query_count} ({progress:.1f}%)")
+
             if fee:
                 total_cost += fee.get("apiCost", 0)
+                account_balance = fee.get("accountBalance", 0)
 
             # 更新任务元数据
             # 是否完成 没有更多数据、没有游标、获取足够数据
@@ -146,6 +156,12 @@ def main():
             error_message = str(e)
             break
 
+    # 显示完成提示
+    if error_message:
+        print(f"查询失败：{error_message}", file=sys.stderr)
+    else:
+        print(f"查询完成：共获取 {total_retrieved} 条数据，总费用 {total_cost}分钱")
+
     # 构建最终输出
     output_data = {
         'task_id': task_id,
@@ -153,7 +169,10 @@ def main():
         'total_hits': total_retrieved,
         'error_msg': error_message,
         'file_url': get_task_result_file(task_id),
-        'total_cost': f"{total_cost}分钱"
+        'fee': {
+            "apiCost": f"{total_cost}分钱",
+            "balance": f"{account_balance}分钱"
+        }
     }
 
     # 输出结果

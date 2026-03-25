@@ -76,11 +76,19 @@ pip install -r requirements.txt
 export UPKUAJING_API_KEY=your_api_key_here
 ```
 
-**方式2：使用 .env 文件**
+**方式2：使用共享 .env 文件（推荐）**
 ```bash
-cp .env.example .env
-# 编辑 .env 文件，填入你的 API 密钥
+# 创建配置目录
+mkdir -p ~/.upkuajing
+
+# 创建 .env 文件并添加 API 密钥
+echo "UPKUAJING_API_KEY=your_api_key_here" > ~/.upkuajing/.env
+
+# 设置文件权限（仅当前用户可读写）
+chmod 600 ~/.upkuajing/.env
 ```
+
+*注意：使用共享配置后，upkuajing 系列的所有 skill 都可以共用同一个 API 密钥。*
 
 ### 3. 申请 API 密钥
 
@@ -125,11 +133,11 @@ python scripts/company_list_search.py \
   --params '{"importCountries": ["US"]}' \
   --query_count 20
 
-# 获取公司详情
-python scripts/company_get_details.py --pid [公司ID]
+# 获取公司详情（支持多个ID，空格分隔，最多20个）
+python scripts/company_get_details.py --companyIds [公司ID1 公司ID2 ...]
 
-# 获取联系方式
-python scripts/company_get_contact.py --pid [公司ID]
+# 获取联系方式（支持多个ID，空格分隔，最多20个）
+python scripts/company_get_contact.py --companyIds [公司ID1 公司ID2 ...]
 ```
 
 ## 使用示例

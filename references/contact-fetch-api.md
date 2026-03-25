@@ -1,11 +1,15 @@
 # 联系方式获取 API 参考
 
+## python脚本参数
+- `--companyIds`：公司ID列表（空格分隔，必需，最多20个）
+
 ## 请求参数
 
 ### 必需参数
-- companyId（整数）：公司编号
+- companyIds（整数数组）：公司编号列表（最多20个）
 
 ## 响应参数
+- companyId：公司编号
 
 ### 邮箱信息 emails
 - val：邮箱地址

@@ -48,12 +48,14 @@ metadata: {"version":"1.0.0","homepage":"https://www.upkuajing.com","clawdbot":{
 ### 两个增强功能
 
 在获取到贸易列表或公司列表后，如有必要，可通过以下接口对结果中的公司ID进行信息增强：
-**公司详情** (`company_get_details.py --companyId *`) 
+**公司详情** (`company_get_details.py --companyIds *`)
 - 获取公司信息（不包括联系方式）
+- **参数**：`--companyIds` 公司ID列表（空格分隔），一次最多20个
 - **API业务参数**：[公司详情](references/company-detail-api.md)
 
-**联系信息** (`company_get_contact.py --companyId *`)
+**联系信息** (`company_get_contact.py --companyIds *`)
 - 获取联系方式详情 邮箱、电话、社交媒体、网站
+- **参数**：`--companyIds` 公司ID列表（空格分隔），一次最多20个
 - **API业务参数**：[获取联系方式](references/contact-fetch-api.md)
 
 ## API密钥与充值
@@ -82,14 +84,29 @@ UPKUAJING_API_KEY=your_api_key_here
   
 ## 费用
 
-**所有API调用都会产生费用** API调用按请求次数计费。
+**所有API调用都会产生费用**，不同接口计费方式不同。
 **最新价格信息**：用户可访问 [详细价格说明](https://www.upkuajing.com/web/openapi/price.html)
 
-在进行多次API调用之前，请告知用户预计费用并获得确认。
-**确认规则：只要 query_count > 20，无论请求多少条，执行前必须：**
-1. 计算所需调用次数：`ceil(query_count / 20)` 次
-2. 告知用户预计消耗次数
-3. 等待用户确认后再执行脚本
+### 列表搜索计费规则
+
+按**调用次数**计费，每次返回最多20条记录：
+- 调用次数：`ceil(query_count / 20)` 次
+- **只要 query_count > 20，执行前必须：**
+  1. 告知用户预计调用次数
+  2. 停止，等待用户在独立消息中明确确认后，再执行脚本
+
+### 增强接口计费规则
+
+按**传入的ID数量**计费，每次最多可以传入20个ID：
+- 传入1个ID = 计费1次
+- 传入20个ID = 计费20次（单次上限）
+- **批量获取前必须：**
+  1. 告知用户传入ID数量及对应费用次数
+  2. 停止，等待用户在独立消息中明确确认后，再执行脚本
+
+### 费用确认原则
+
+**任何会产生费用的操作，都必须先告知、等待用户明确确认，不得在告知的同一条消息中直接执行。**
 
 
 ## 工作流程
@@ -116,9 +133,9 @@ python scripts/trade_list_search.py \
   --query_count 20
 ```
 
-如需进一步获取供应商详情：
+如需进一步获取供应商详情（支持批量查询）：
 ```bash
-python scripts/company_get_details.py --companyId 123456
+python scripts/company_get_details.py --companyIds 123456 789012 ...
 ```
 
 ### 场景 2: 大量查询 — 大数据集分析
@@ -144,9 +161,9 @@ python scripts/company_list_search.py --task_id 'a1b2-c3d4' --query_count 1000
 
 ## 错误处理
 
-- **API密钥无效/不存在**：检查`UPKUAJING_API_KEY`
+- **API密钥无效/不存在**：检查 `~/.upkuajing/.env` 文件中的 `UPKUAJING_API_KEY`
 - **余额不足**：根据**账户充值**步骤，引导用户充值
-- **参数无效**：根据接口，查看references完整文档，检查参数名称和值
+- **参数无效**：**必须先查看 references/ 目录下的对应 API 文档**，检查参数名称和格式，不要猜测
 
 ## 最佳实践
 
@@ -156,7 +173,12 @@ python scripts/company_list_search.py --task_id 'a1b2-c3d4' --query_count 1000
    - 分析贸易数据？ → 使用**贸易列表搜索**
    - 寻找客户/合作伙伴？ → 使用**公司列表搜索**
 
-2. **识别参数条件**：
+2. **查看API文档**：
+   - **执行列表查询前，必须先查看对应的 API 参考文档**
+   - 贸易列表：查看 [references/trade-list-api.md](references/trade-list-api.md)
+   - 公司列表：查看 [references/company-list-api.md](references/company-list-api.md)
+
+3. **识别参数条件**：
    - 设定日期范围
    - HS编码通常比产品名称 筛选效果更精准
    - 通过筛选特定国家来减少噪音
@@ -179,3 +201,4 @@ python scripts/company_list_search.py --task_id 'a1b2-c3d4' --query_count 1000
 - 搜索数量会影响接口的响应时间，建议设置 timeout:120
 - **禁止输出技术参数格式**：不要在回复中展示代码样式的参数，应将其转换为自然语言
 - **不要**估算、猜测每次调用的费用，如有需要，使用`auth.py --account_info` 获取余额
+- **不要**猜测参数名称，从文档中获取准确的参数名称和格式
