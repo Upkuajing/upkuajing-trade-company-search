@@ -5,9 +5,9 @@
 """
 import argparse
 import sys
-import os
 import json
-from common import print_json_output, make_request, SKILL_BASE_DIR, API_KEY_ENV
+from pathlib import Path
+from common import print_json_output, make_request, API_KEY_ENV, UPKUAJING_ENV_FILE, UPKUAJING_DIR
 
 
 def new_key() -> dict:
@@ -15,9 +15,9 @@ def new_key() -> dict:
     申请新的 API 密钥。
     """
     # 检查是否已存在 .env 文件和 API key
-    env_file = os.path.join(SKILL_BASE_DIR, '.env')
+    env_file = UPKUAJING_ENV_FILE
 
-    if os.path.exists(env_file):
+    if env_file.exists():
         # 读取现有的 .env 文件
         try:
             with open(env_file, 'r', encoding='utf-8') as f:
@@ -30,8 +30,8 @@ def new_key() -> dict:
                         if existing_key:
                             return {
                                 "success": False,
-                                "message": f"错误： envFile中已存在API密钥（{existing_key[:10]}...）。\n如需重新申请，请先删除 .env 中的 UPKUAJING_API_KEY 后再运行此命令。",
-                                "envFilePath": env_file
+                                "message": f"错误： {env_file} 中已存在API密钥（{existing_key[:10]}...）。\n如需重新申请，请先删除文件中的 {API_KEY_ENV} 后再运行此命令。",
+                                "envFilePath": str(env_file)
                             }
         except IOError:
             pass  # 如果读取失败，继续执行
@@ -57,23 +57,32 @@ def new_key() -> dict:
             "message": "API密钥申请失败：服务器响应格式异常，未返回apiKey。"
         }
 
+    # 确保 ~/.upkuajing 目录存在
+    try:
+        UPKUAJING_DIR.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        return {
+            "success": False,
+            "message": f"API密钥申请成功，但创建目录失败：{str(e)}。\n请手动创建目录 {UPKUAJING_DIR} 并设置环境变量 {API_KEY_ENV}。",
+            "envFilePath": str(env_file)
+        }
+
     # 保存到 .env 文件
     try:
         with open(env_file, 'w', encoding='utf-8') as f:
             f.write(f"{API_KEY_ENV}={api_key}\n")
     except IOError as e:
-        print(f"警告：无法保存到 .env 文件：{str(e)}", file=sys.stderr)
         return {
             "success": False,
             "message": f"API密钥申请成功，但保存到 .env 文件失败：{str(e)}。\n请手动设置环境变量 {API_KEY_ENV}。",
-            "envFilePath": env_file
+            "envFilePath": str(env_file)
         }
 
     # 返回成功结果
     return {
         "success": True,
-        "message": f"API密钥申请成功！请告知用户：密钥文件路径，妥善保存密钥，请勿泄露给他人，如密钥泄露，请立即申请吊销。",
-        "envFilePath": env_file
+        "message": f"API密钥申请成功！密钥已保存到：{env_file}\n请妥善保管密钥，请勿泄露给他人。",
+        "envFilePath": str(env_file)
     }
 
 

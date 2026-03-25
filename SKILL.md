@@ -57,17 +57,19 @@ metadata: {"version":"1.0.0","homepage":"https://www.upkuajing.com","clawdbot":{
 - **API业务参数**：[获取联系方式](references/contact-fetch-api.md)
 
 ## API密钥与充值
-使用此技能需要API密钥。API密钥应设置在 `UPKUAJING_API_KEY` 环境变量中;
+使用此技能需要API密钥。API密钥保存在 `~/.upkuajing/.env` 文件中：
 ```bash
-echo $UPKUAJING_API_KEY
-cat ./.env
-export UPKUAJING_API_KEY=your_api_key_here
+cat ~/.upkuajing/.env
+```
+**文件内容示例**：
+```
+UPKUAJING_API_KEY=your_api_key_here
 ```
 ### **未设置API密钥**
-请先检查`./.env`文件是否有UPKUAJING_API_KEY;
-如果未设置UPKUAJING_API_KEY API密钥，请提示并让用户选择：
-1. 用户有，由用户提供(让用户设置到环境变量)
-2. 用户没有，你可使用接口进行申请（`auth.py --new_key`），申请到新密钥后，需告知用户妥善保存
+请先检查 `~/.upkuajing/.env` 文件是否有 UPKUAJING_API_KEY;
+如果未设置 UPKUAJING_API_KEY API密钥，请提示并让用户选择：
+1. 用户有，由用户提供(手动添加到 ~/.upkuajing/.env 文件)
+2. 用户没有，你可使用接口进行申请（`auth.py --new_key`），申请到新密钥后，会自动保存到 ~/.upkuajing/.env
 等待用户选择；
 
 ### **账户充值**
@@ -142,7 +144,7 @@ python scripts/company_list_search.py --task_id 'a1b2-c3d4' --query_count 1000
 
 ## 错误处理
 
-- **API密钥无效/不存在**：检查`UPKUAJING_API_KEY`环境变量
+- **API密钥无效/不存在**：检查`UPKUAJING_API_KEY`
 - **余额不足**：根据**账户充值**步骤，引导用户充值
 - **参数无效**：根据接口，查看references完整文档，检查参数名称和值
 

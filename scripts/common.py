@@ -5,13 +5,15 @@ import os
 import json
 import sys
 import uuid
+from pathlib import Path
 from typing import Any, Dict, Optional
 import httpx
-
 
 # API配置
 API_BASE_URL = "https://openapi.upkuajing.com"
 API_KEY_ENV = "UPKUAJING_API_KEY"
+UPKUAJING_DIR = Path.home() / '.upkuajing'
+UPKUAJING_ENV_FILE = UPKUAJING_DIR / '.env'
 
 # 技能目录配置
 SKILL_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -37,23 +39,53 @@ API_ERROR_MESSAGES = {
     APIErrorCode.SEARCH_BALANCE_NOT_ENOUGH: "余额不足，请充值后继续使用",
 }
 
-
 # API错误处理建议
 API_ERROR_SUGGESTIONS = {
-    APIErrorCode.REQUEST_AUTH_ERROR: "请检查UPKUAJING_API_KEY环境变量是否设置正确，或者检查./.env 配置文件",
+    APIErrorCode.REQUEST_AUTH_ERROR: f"请检查环境变量 {API_KEY_ENV} 或文件 {UPKUAJING_ENV_FILE} 中的API密钥是否正确",
     APIErrorCode.SEARCH_BALANCE_NOT_ENOUGH: "请运行 auth.py --new_rec_order 创建充值订单",
     APIErrorCode.REQUEST_PARAM_ERROR: "请参考 references/ 目录下的API文档检查参数格式",
 }
 
 
+def load_env_file() -> Dict[str, str]:
+    """
+    从 ~/.upkuajing/.env 文件加载环境变量。
+
+    Returns:
+        环境变量字典
+    """
+    env_vars = {}
+    if UPKUAJING_ENV_FILE.exists():
+        with open(UPKUAJING_ENV_FILE, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                # 跳过空行和注释
+                if not line or line.startswith('#'):
+                    continue
+                # 解析 KEY=VALUE 格式
+                if '=' in line:
+                    key, value = line.split('=', 1)
+                    env_vars[key.strip()] = value.strip()
+    return env_vars
+
+
 def get_api_key() -> str:
     """
-    从环境变量获取API密钥。
+    获取API密钥，优先从环境变量，其次从 ~/.upkuajing/.env 文件。
     """
+    # 优先从环境变量获取
     api_key = os.environ.get(API_KEY_ENV)
+
+    # 如果环境变量没有，尝试从 ~/.upkuajing/.env 读取
+    if not api_key:
+        env_vars = load_env_file()
+        api_key = env_vars.get(API_KEY_ENV)
+
     if not api_key:
         print(
-            f"错误：未找到API密钥。请设置环境变量 {API_KEY_ENV}。",
+            f"错误：未找到API密钥。\n"
+            f"请设置环境变量 {API_KEY_ENV}，\n"
+            f"或在 {UPKUAJING_ENV_FILE} 文件中添加：{API_KEY_ENV}=your_api_key_here",
             file=sys.stderr
         )
         sys.exit(1)
@@ -61,10 +93,10 @@ def get_api_key() -> str:
 
 
 def make_request(
-    endpoint: str,
-    params: Dict[str, Any],
-    api_key: Optional[str] = None,
-    require_auth: bool = True
+        endpoint: str,
+        params: Dict[str, Any],
+        api_key: Optional[str] = None,
+        require_auth: bool = True
 ) -> Dict[str, Any]:
     """
     向跨境魔方API发起HTTP请求。
@@ -335,3 +367,17 @@ def append_result_data(task_id: str, data_list: list) -> None:
     with open(result_file, 'a', encoding='utf-8') as f:
         for item in data_list:
             f.write(json.dumps(item, ensure_ascii=False) + '\n')
+
+
+def cover_fee_info(fee: dict) -> dict:
+    """
+    将Api响应的费用信息 转为利于Ai理解的格式
+    """
+    if not fee:
+        return {}
+    api_cost = fee.get("apiCost", 0)
+    balance = fee.get("accountBalance", 0)
+    return {
+        "apiCost": f"{api_cost}分钱",
+        "balance": f"{balance}分钱"
+    }
