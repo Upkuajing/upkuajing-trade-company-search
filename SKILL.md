@@ -1,204 +1,209 @@
 ---
 name: upkuajing-trade-company-search
-description: 通过跨境魔方开放平台查询海关贸易数据。支持：查询贸易订单明细（进口/出口记录、交易金额、贸易路线）；发现潜在客户和商业合作伙伴（买家开发、供应商调查、客户挖掘）；获取公司详情和联系方式（邮箱、电话、社交媒体）。适用场景：外贸客户开发、竞品供应链分析、物流行业客户挖掘、进出口市场调研。
-metadata: {"version":"1.0.0","homepage":"https://www.upkuajing.com","clawdbot":{"emoji":"🏢","requires":{"bins":["python"],"env":["UPKUAJING_API_KEY"]},"primaryEnv":"UPKUAJING_API_KEY"}}
+description: Query customs trade data through the UpKuaJing Open Platform（跨境魔方）. Supports：querying trade order details (import/export records, transaction amounts, trade routes); discovering potential customers and business partners (buyer development, supplier research, customer mining); getting company details and contact information (email, phone, social media). Use cases：foreign trade customer development, competitive supply chain analysis, logistics industry customer mining, import/export market research.
+metadata: {"version":"1.0.3","homepage":"https://www.upkuajing.com","clawdbot":{"emoji":"🏢","requires":{"bins":["python"],"env":["UPKUAJING_API_KEY"]},"primaryEnv":"UPKUAJING_API_KEY"}}
 ---
 
-# 跨境魔方海关贸易公司搜索
+# UpKuaJing Customs Trade Company Search
 
-使用跨境魔方开放平台API通过海关贸易数据搜索公司。本技能采用**数据驱动方式**：通过分析贸易记录和交易模式来查找公司。
+Search for companies through customs trade data using the UpKuaJing Open Platform API. This skill uses a **data-driven approach**: finding companies by analyzing trade records and transaction patterns.
 
-## 概述
+## Overview
 
-本技能通过四个脚本提供对跨境魔方海关贸易数据API的访问：两种搜索方式（贸易列表、公司列表）和两个增强接口（公司详情、联系信息）; 
-通过`auth.py`脚本提供 API密钥生成、充值；
+This skill provides access to UpKuaJing's customs trade data API through four scripts: two search methods (trade list, company list) and two enhancement interfaces (company details, contact information).
+API key generation and top-up are provided through the `auth.py` script.
 
-## 脚本运行
+## Running Scripts
 
-### 环境准备
+### Environment Setup
 
-1. **检查 Python**：`python --version`
-2. **安装依赖**：`pip install -r requirements.txt`
+1. **Check Python**: `python --version`
+2. **Install dependencies**: `pip install -r requirements.txt`
 
-脚本目录：`scripts/*.py`
-运行示例：`python scripts/*.py`
+Script directory: `scripts/*.py`
+Run example: `python scripts/*.py`
 
-### 两种搜索方式
+### Two Search Methods
 
-**贸易列表搜索** (`trade_list_search.py`)
-- **返回粒度**：每条贸易订单为一行记录
-- **适用场景**：关心的是"发生了什么交易"
-- **示例**：
-   - "显示A公司采购LED的所有订单"
-   - "找进/出口到美国的大豆贸易记录"
-   - "查看某段时间内的具体交易明细"
-- **参数**：查看参数说明 [贸易列表](references/trade-list-api.md)
-
-
-**公司列表搜索** (`company_list_search.py`)
-- **返回粒度**：对贸易订单按公司聚合后，每家公司为一行
-- **适用场景**：关心的是"有哪些公司"
-- **示例**：
-  - "找采购过LED的公司有哪些"
-  - "找与中国有电子产品进出口往来的美国公司"
-  - "找有中美贸易往来的公司"（物流行业客户开发）
-- **参数**：查看参数说明 [公司列表](references/company-list-api.md)
+**Trade List Search** (`trade_list_search.py`)
+- **Return granularity**: Each trade order as one record
+- **Use cases**: Focus on "what transactions occurred"
+- **Examples**:
+   - "Show all orders where Company A purchased LED"
+   - "Find soybean trade records imported/exported to US"
+   - "View specific transaction details within a time period"
+- **Parameters**: See [Trade List](references/trade-list-api.md)
 
 
-### 两个增强功能
+**Company List Search** (`company_list_search.py`)
+- **Return granularity**: Trade orders aggregated by company, each company as one row
+- **Use cases**: Focus on "which companies exist"
+- **Examples**:
+  - "Find companies that purchased LED"
+  - "Find US companies with electronics import/export business with China"
+  - "Find companies with China-US trade" (logistics industry customer development)
+- **Parameters**: See [Company List](references/company-list-api.md)
 
-在获取到贸易列表或公司列表后，如有必要，可通过以下接口对结果中的公司ID进行信息增强：
-**公司详情** (`company_get_details.py --companyIds *`)
-- 获取公司信息（不包括联系方式）
-- **参数**：`--companyIds` 公司ID列表（空格分隔），一次最多20个
-- **API业务参数**：[公司详情](references/company-detail-api.md)
 
-**联系信息** (`company_get_contact.py --companyIds *`)
-- 获取联系方式详情 邮箱、电话、社交媒体、网站
-- **参数**：`--companyIds` 公司ID列表（空格分隔），一次最多20个
-- **API业务参数**：[获取联系方式](references/contact-fetch-api.md)
+### Two Enhancement Features
 
-## API密钥与充值
-使用此技能需要API密钥。API密钥保存在 `~/.upkuajing/.env` 文件中：
+After obtaining trade list or company list, use these interfaces to enrich company IDs in the results when necessary:
+**Company Details** (`company_get_details.py --companyIds *`)
+- Get company information (excluding contact information)
+- **Parameters**: `--companyIds` List of company IDs (space-separated), max 20 at a time
+- **API business parameters**: [Company Details](references/company-detail-api.md)
+
+**Contact Information** (`company_get_contact.py --companyIds *`)
+- Get contact details: email, phone, social media, website
+- **Parameters**: `--companyIds` List of company IDs (space-separated), max 20 at a time
+- **API business parameters**: [Get Contact Information](references/contact-fetch-api.md)
+
+## API Key and Top-up
+
+This skill requires an API key. The API key is stored in the `~/.upkuajing/.env` file:
 ```bash
 cat ~/.upkuajing/.env
 ```
-**文件内容示例**：
+**Example file content**:
 ```
 UPKUAJING_API_KEY=your_api_key_here
 ```
-### **未设置API密钥**
-请先检查 `~/.upkuajing/.env` 文件是否有 UPKUAJING_API_KEY;
-如果未设置 UPKUAJING_API_KEY API密钥，请提示并让用户选择：
-1. 用户有，由用户提供(手动添加到 ~/.upkuajing/.env 文件)
-2. 用户没有，你可使用接口进行申请（`auth.py --new_key`），申请到新密钥后，会自动保存到 ~/.upkuajing/.env
-等待用户选择；
+### **API Key Not Set**
+First check if the `~/.upkuajing/.env` file has UPKUAJING_API_KEY;
+If UPKUAJING_API_KEY is not set, prompt the user to choose:
+1. User has one: User provides it (manually add to ~/.upkuajing/.env file)
+2. User doesn't have one: You can apply using the interface (`auth.py --new_key`), the new key will be automatically saved to ~/.upkuajing/.env
+Wait for user selection;
 
-### **账户充值**
-如果调用接口响应账户余额不足时，需说明并引导用户进行账户充值：
-1. 创建充值订单（`auth.py --new_rec_order`）
-2. 根据订单响应，发送支付页面URL给用户，引导用户打开地址付款，付款成功后告诉你；
+### **Account Top-up**
+When API response indicates insufficient balance, explain and guide user to top up:
+1. Create top-up order (`auth.py --new_rec_order`)
+2. Based on order response, send payment page URL to user, guide user to open URL and pay, user confirms after successful payment;
 
-### **获取账户信息**
-可通过此脚本，获取UPKUAJING_API_KEY对应的账户信息 `auth.py --account_info`
-  
-## 费用
+### **Get Account Information**
+Use this script to get account information for UPKUAJING_API_KEY: `auth.py --account_info`
 
-**所有API调用都会产生费用**，不同接口计费方式不同。
-**最新价格信息**：用户可访问 [详细价格说明](https://www.upkuajing.com/web/openapi/price.html)
+## API Key and UpKuaJing Account
+- Newly applied API key: Register and login at [UpKuaJing Open Platform](https://developer.upkuajing.com/), then bind account
 
-### 列表搜索计费规则
+## Fees
 
-按**调用次数**计费，每次返回最多20条记录：
-- 调用次数：`ceil(query_count / 20)` 次
-- **只要 query_count > 20，执行前必须：**
-  1. 告知用户预计调用次数
-  2. 停止，等待用户在独立消息中明确确认后，再执行脚本
+**All API calls incur fees**, different interfaces have different billing methods.
+**Latest pricing**: Users can visit [Detailed Price Description](https://www.upkuajing.com/web/openapi/price.html)
 
-### 增强接口计费规则
+### List Search Billing Rules
 
-按**传入的ID数量**计费，每次最多可以传入20个ID：
-- 传入1个ID = 计费1次
-- 传入20个ID = 计费20次（单次上限）
-- **批量获取前必须：**
-  1. 告知用户传入ID数量及对应费用次数
-  2. 停止，等待用户在独立消息中明确确认后，再执行脚本
+Billed by **number of calls**, each call returns up to 20 records:
+- Number of calls: `ceil(query_count / 20)` times
+- **Whenever query_count > 20, must before execution:**
+  1. Inform user of expected number of calls
+  2. Stop, wait for explicit user confirmation in a separate message, then execute script
 
-### 费用确认原则
+### Enhancement Interface Billing Rules
 
-**任何会产生费用的操作，都必须先告知、等待用户明确确认，不得在告知的同一条消息中直接执行。**
+Billed by **number of IDs passed**, max 20 IDs per call:
+- Pass 1 ID = billed 1 time
+- Pass 20 IDs = billed 20 times (single call limit)
+- **Before batch retrieval must:**
+  1. Inform user of number of IDs passed and corresponding fee count
+  2. Stop, wait for explicit user confirmation in a separate message, then execute script
+
+### Fee Confirmation Principle
+
+**Any operation that incurs fees must first inform and wait for explicit user confirmation. Do not execute in the same message as the notification.**
 
 
-## 工作流程
-根据用户意图选择合适的API
+## Workflow
 
-### 决策指南
+Choose the appropriate API based on user intent
 
-| 用户意图 | 使用API |
+### Decision Guide
+
+| User Intent | Use API |
 |-------------|---------|
-| "分析贸易模式/订单数据" | 贸易列表 |
-| "找采购XXX的公司" | 公司列表 |
-| "找XXX的供应商，有邮箱" | 公司列表 existEmail=1 |
-| "获取公司详细信息" | 公司详情 |
-| "获取联系方式" | 联系信息 |
+| "Analyze trade patterns/order data" | Trade list |
+| "Find companies purchasing XXX" | Company list |
+| "Find suppliers for XXX with email" | Company list existEmail=1 |
+| "Get company detailed information" | Company details |
+| "Get contact information" | Contact information |
 
-## 使用示例
+## Usage Examples
 
-### 场景1: 小量查询 — 贸易数据分析
+### Scenario 1: Small Query — Trade Data Analysis
 
-**用户请求**："显示2024年出口到美国的LED灯具贸易数据"
+**User request**: "Show 2024 LED lighting fixture trade data exported to US"
 ```bash
 python scripts/trade_list_search.py \
   --params '{"products": ["LED lights"], "buyerCountryCodes": ["US"], "dateStart": 1704067200000, "dateEnd": 1735689599999}' \
   --query_count 20
 ```
 
-如需进一步获取供应商详情（支持批量查询）：
+To further get supplier details (supports batch queries):
 ```bash
 python scripts/company_get_details.py --companyIds 123456 789012 ...
 ```
 
-### 场景 2: 大量查询 — 大数据集分析
+### Scenario 2: Large Query — Big Data Analysis
 
-**用户请求**："分析2024年的100条大豆贸易数据"
-**执行前**告知用户：ceil(100/20) = 5 次API调用，确认后再执行；
+**User request**: "Analyze 100 soybean trade records from 2024"
+**Before execution** inform user: ceil(100/20) = 5 API calls, confirm before executing;
 ```bash
 python scripts/trade_list_search.py --params '{"products": ["soybean"], "dateStart": 1704067200000, "dateEnd": 1735689599999}' --query_count 100
 ```
 
-### 场景 3: 超大量查询 - 需要多次调用脚本
+### Scenario 3: Ultra Large Query - Multiple Script Calls Required
 
-**用户请求**："找从中国进口电子产品的2000家公司，要有邮箱"
-**执行前**告知用户：ceil(2000/20) = 100 次API调用，确认后再执行；
+**User request**: "Find 2000 companies importing electronics from China, with email addresses"
+**Before execution** inform user: ceil(2000/20) = 100 API calls, confirm before executing;
 ```bash
 python scripts/company_list_search.py --params '{"companyType": 2, "sellerCountryCodes": ["CN"], "existEmail": 1}' --query_count 1000
 ```
-**执行结束**：脚本响应 {"task_id":"a1b2-c3d4", "file_url": "xxxxx", ……}
-**继续执行，追加数据**：指定task_id，让脚本从上次的cursor处继续查询并追加到文件
+**After execution**: Script responds {"task_id":"a1b2-c3d4", "file_url": "xxxxx", ……}
+**Continue execution, append data**: Specify task_id, script continues query from last cursor and appends to file
 ```bash
 python scripts/company_list_search.py --task_id 'a1b2-c3d4' --query_count 1000
 ```
 
-## 错误处理
+## Error Handling
 
-- **API密钥无效/不存在**：检查 `~/.upkuajing/.env` 文件中的 `UPKUAJING_API_KEY`
-- **余额不足**：根据**账户充值**步骤，引导用户充值
-- **参数无效**：**必须先查看 references/ 目录下的对应 API 文档**，检查参数名称和格式，不要猜测
+- **API key invalid/non-existent**: Check `UPKUAJING_API_KEY` in `~/.upkuajing/.env` file
+- **Insufficient balance**: Guide user to top up according to **Account Top-up** steps
+- **Invalid parameters**: **Must first check the corresponding API documentation in references/ directory**, check parameter names and formats, do not guess
 
-## 最佳实践
+## Best Practices
 
-### 选择正确的方法
+### Choosing the Right Method
 
-1. **理解用户意图**：
-   - 分析贸易数据？ → 使用**贸易列表搜索**
-   - 寻找客户/合作伙伴？ → 使用**公司列表搜索**
+1. **Understand user intent**:
+   - Analyze trade data? → Use **trade list search**
+   - Find customers/partners? → Use **company list search**
 
-2. **查看API文档**：
-   - **执行列表查询前，必须先查看对应的 API 参考文档**
-   - 贸易列表：查看 [references/trade-list-api.md](references/trade-list-api.md)
-   - 公司列表：查看 [references/company-list-api.md](references/company-list-api.md)
+2. **Check API documentation**:
+   - **Before executing list queries, must first check the corresponding API reference documentation**
+   - Trade list: Check [references/trade-list-api.md](references/trade-list-api.md)
+   - Company list: Check [references/company-list-api.md](references/company-list-api.md)
 
-3. **识别参数条件**：
-   - 设定日期范围
-   - HS编码通常比产品名称 筛选效果更精准
-   - 通过筛选特定国家来减少噪音
-   - 使用ISO国家代码：CN、US、JP等
-   - 使用筛选条件查找有联系信息的公司
+3. **Identify parameter conditions**:
+   - Set date range
+   - HS codes are usually more precise than product names for filtering
+   - Reduce noise by filtering specific countries
+   - Use ISO country codes: CN, US, JP, etc.
+   - Use filters to find companies with contact information
 
-### 处理结果
+### Handling Results
 
-3. **谨慎处理jsonl文件**：对数据量大的查询，注意文件大小
+3. **Handle jsonl files carefully**: For large data queries, pay attention to file size
 
-4. **逐步丰富信息**：仅在需要时调用详情/联系接口
-   - 两个列表接口返回的公司ID都可以用于两个详情接口
-   - 如果用户只需要少数公司，不要为所有公司获取详情
+4. **Gradually enrich information**: Only call details/contact interfaces when needed
+   - Company IDs returned by both list interfaces can be used for both detail interfaces
+   - If user only needs a few companies, don't get details for all companies
 
-## 注意事项
-- 所有时间戳均为毫秒级
-- 国家代码使用ISO 3166-1 alpha-2格式（例如：CN、US、JP）
-- 文件路径在所有平台上都使用正斜杠
-- 产品名称、行业名称需要使用**英文**
-- 搜索数量会影响接口的响应时间，建议设置 timeout:120
-- **禁止输出技术参数格式**：不要在回复中展示代码样式的参数，应将其转换为自然语言
-- **不要**估算、猜测每次调用的费用（各接口收费不准不一），如有需要，使用`auth.py --account_info` 获取余额
-- **不要**猜测参数名称，从文档中获取准确的参数名称和格式
+## Notes
+- All timestamps are in milliseconds
+- Country codes use ISO 3166-1 alpha-2 format (e.g., CN, US, JP)
+- File paths use forward slashes on all platforms
+- Product names and industry names must be in **English**
+- Search quantity affects API response time, recommend setting timeout:120
+- **Prohibit outputting technical parameter format**: Do not display code-style parameters in responses, convert to natural language
+- **Do not** estimate or guess per-call fees (each interface has different pricing), if needed use `auth.py --account_info` to get balance
+- **Do not** guess parameter names, get accurate parameter names and formats from documentation
