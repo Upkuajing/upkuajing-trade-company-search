@@ -182,7 +182,7 @@ Unlike `upkuajing-company-people-search`, this skill is based on customs trade d
 
 ## Pricing
 
-All API calls incur fees. For latest pricing, please visit: https://www.upkuajing.com/openapi/pricing
+All API calls incur fees. For latest pricing, please visit: https://www.upkuajing.com/web/openapi/price.html
 
 **Account Recharge:**
 ```bash

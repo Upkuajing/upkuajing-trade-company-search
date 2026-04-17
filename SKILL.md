@@ -23,6 +23,8 @@ API key generation and top-up are provided through the `auth.py` script.
 Script directory: `scripts/*.py`
 Run example: `python scripts/*.py`
 
+**Important**: Always use direct script invocation like `python scripts/trade_list_search.py`. **Do NOT use** shell compound commands like `cd scripts && python trade_list_search.py`.
+
 ### Two Search Methods
 
 **Trade List Search** (`trade_list_search.py`)
@@ -208,3 +210,13 @@ python scripts/company_list_search.py --task_id 'a1b2-c3d4' --query_count 1000
 - **Prohibit outputting technical parameter format**: Do not display code-style parameters in responses, convert to natural language
 - **Do not estimate or guess per-call fees** — use `python scripts/auth.py --price_info` to get accurate pricing information
 - **Do not** guess parameter names, get accurate parameter names and formats from documentation
+
+## Related Skills
+
+Other UpKuaJing skills you might find useful:
+
+- upkuajing-global-company-people-search — Global company and people search
+- upkuajing-email-tool — Send emails and manage email tasks
+- upkuajing-map-merchants-search — Map-based merchant search
+- upkuajing-sms-tool — Send SMS and manage SMS tasks
+- upkuajing-contact-info-validity-check — Check contact info validity
