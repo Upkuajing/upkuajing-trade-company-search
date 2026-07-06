@@ -21,7 +21,7 @@ def get_contact_info(company_ids) -> dict:
     params = {
         'companyIds': company_ids
     }
-    response = make_request('/customs/company/contact/batch', params)
+    response = make_request('/agent/customs/company/contact/batch', params)
     return response
 
 

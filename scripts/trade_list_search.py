@@ -30,7 +30,7 @@ def search_trade_list(params: dict, cursor: str = None) -> dict:
     # 不传 cursor 表示首次请求
 
     # 发起API请求
-    response = make_request('/customs/trade/list', request_params)
+    response = make_request('/agent/customs/trade/list', request_params)
     return response
 
 
