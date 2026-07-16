@@ -19,7 +19,7 @@ def get_company_details(company_ids) -> dict:
         包含公司详情的API响应
     """
     params = {'companyIds': company_ids}
-    response = make_request('/customs/company/detail/batch', params)
+    response = make_request('/agent/customs/company/detail/batch', params)
     return response
 
 
