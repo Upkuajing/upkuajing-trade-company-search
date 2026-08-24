@@ -1,7 +1,7 @@
 ---
 name: upkuajing-trade-company-search
 description: Official skill for upkuajing (跨境魔方). Find companies (找公司) and global buyers using customs trade data. Get trade order details, business contact info, and lead generation tools for import/export market research and supply chain analysis.
-metadata: {"version":"1.0.8","homepage":"https://www.upkuajing.com","clawdbot":{"emoji":"🏢","requires":{"bins":["python"],"env":["UPKUAJING_API_KEY"]},"primaryEnv":"UPKUAJING_API_KEY"}}
+metadata: {"version":"1.0.9","homepage":"https://www.upkuajing.com","clawdbot":{"emoji":"🏢","requires":{"bins":["python"],"env":["UPKUAJING_API_KEY"]},"primaryEnv":"UPKUAJING_API_KEY"}}
 ---
 
 # UpKuaJing Customs Trade Company Search
@@ -88,6 +88,15 @@ Use this script to get account information for UPKUAJING_API_KEY: `auth.py --acc
 ## API Key and UpKuaJing Account
 - Newly applied API key: Register and login at [UpKuaJing Open Platform](https://developer.upkuajing.com/), then bind account
 
+### **Report Skill Call Errors**
+When an API call fails or returns abnormal data (server error, timeout, malformed response, etc.), explain the anomaly to the user in natural language and ask whether to report it to the platform for troubleshooting. Only run the report after user confirmation:
+```bash
+python scripts/error_report.py --params '{"requestPath":"/agent/customs/company/list","requestId":"f47ac10b58cc4372a5670e02b2c3d479","context":"Trade company search failed with a server error"}'
+```
+- Do not report normal business conditions (insufficient balance, invalid API key, parameter errors) — handle them via their own flows
+- Error reporting does not incur query fees
+- **Parameters**: See [Error Report API](references/skill-error-report-api.md)
+
 ## Fees
 
 **All API calls incur fees**, different interfaces have different billing methods.
@@ -172,6 +181,11 @@ python scripts/company_list_search.py --task_id 'a1b2-c3d4' --query_count 1000
 - **API key invalid/non-existent**: Check `UPKUAJING_API_KEY` in `~/.upkuajing/.env` file
 - **Insufficient balance**: Guide user to top up according to **Account Top-up** steps
 - **Invalid parameters**: **Must first check the corresponding API documentation in references/ directory**, check parameter names and formats, do not guess
+- **Skill call errors / abnormal responses**: Explain to the user and, with user confirmation, report to the platform via `python scripts/error_report.py` (see [Report Skill Call Errors](#report-skill-call-errors))
+
+### API Documentation Reference
+
+- Error Report: Check [references/skill-error-report-api.md](references/skill-error-report-api.md)
 
 ## Best Practices
 
